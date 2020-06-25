@@ -14,7 +14,7 @@ class Restaurants(Base):
     draw = Column(Integer, default=0)
     created_time = Column(DateTime(), nullable=False)
     modified_time = Column(DateTime(), nullable=False)
-    histories = relationship("Histories", backref="restaurants")
+    histories = relationship("Histories", backref="restaurants", cascade="all,delete")
 
     def __init__(self, name, description, site_url):
         self.id = str(uuid.uuid4())
