@@ -1,9 +1,11 @@
 import datetime
 from random import choice
-from models.histories import Histories
 
 from flask import Flask, render_template, request, redirect
+from sqlalchemy import desc, text
+
 from database import db_session, init_db
+from models.histories import Histories
 from models.restaurants import Restaurants
 
 app = Flask(__name__)
@@ -98,6 +100,18 @@ def delete_restaurant():
     return redirect("/restaurants")
 
 
+@app.route("/top")
+def top():
+    restaurants = Restaurants.query.order_by(text("-draw")).limit(5)
+    return render_template("top.html", restaurants=restaurants)
+
+
+@app.route("/history")
+def history():
+    histories = Histories.query.order_by(desc(Histories.created_time)).limit(20)
+    return render_template("history.html", histories=histories)
+
+
 def meal_format(value):
     if 3 < value.hour < 10:
         return "Breakfast"
@@ -106,7 +120,12 @@ def meal_format(value):
     return "Diner"
 
 
+def datetime_format(value):
+    return value.strftime("%d-%m-%Y %H:%M:%S")
+
+
 app.jinja_env.filters["meal"] = meal_format
+app.jinja_env.filters["datetime"] = datetime_format
 
 if __name__ == "__main__":
     app.jinja_env.auto_reload = True
