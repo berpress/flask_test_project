@@ -1,6 +1,17 @@
 from flask import Flask, render_template, request
+from database import db_session, init_db
 
 app = Flask(__name__)
+
+
+@app.before_first_request
+def init():
+    init_db()
+
+
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db_session.remove()
 
 
 @app.route("/")
