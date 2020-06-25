@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
@@ -8,8 +8,13 @@ def start():
     return "Hello world!"
 
 
-@app.route("/create-restaurant")
+@app.route("/create-restaurant", methods=["GET", "POST"])
 def create_restaurant():
+    if request.method == "POST":
+        name = request.form.get("name")
+        description = request.form.get("description")
+        site_url = request.form.get("site_url")
+        return f"{name}, {description}, {site_url}"
     return render_template("create_restaurant.html")
 
 
