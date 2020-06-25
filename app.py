@@ -1,4 +1,6 @@
 import datetime
+from random import choice
+from models.histories import Histories
 
 from flask import Flask, render_template, request, redirect
 from database import db_session, init_db
@@ -19,7 +21,30 @@ def shutdown_session(exception=None):
 
 @app.route("/")
 def start():
-    return "Hello world!"
+    now = datetime.datetime.now()
+    return render_template("start.html", now=now)
+
+
+@app.route("/draw")
+def draw():
+    restaurants = Restaurants.query.all()
+    if not restaurants:
+        return redirect("/create-restaurant")
+    random_restaurant = choice(restaurants)
+
+    try:
+        restaurant = Restaurants.query.get(random_restaurant.id)
+        restaurant.draw += 1
+        history = Histories(restaurant_id=restaurant.id)
+        db_session.add(history)
+        db_session.commit()
+    except Exception:
+        db_session.rollback()
+        return redirect("/")
+
+    now = datetime.datetime.now()
+
+    return render_template("draw.html", restaurant=restaurant, now=now)
 
 
 @app.route("/create-restaurant", methods=["GET", "POST"])
@@ -31,7 +56,7 @@ def create_restaurant():
         restaurant = Restaurants(name, description, site_url)
         db_session.add(restaurant)
         db_session.commit()
-        return f"{name}, {description}, {site_url}"
+        return redirect("/restaurants")
     return render_template("create_restaurant.html")
 
 
@@ -72,6 +97,16 @@ def delete_restaurant():
         db_session.commit()
     return redirect("/restaurants")
 
+
+def meal_format(value):
+    if 3 < value.hour < 10:
+        return "Breakfast"
+    elif 9 < value.hour < 16:
+        return "Lunch"
+    return "Diner"
+
+
+app.jinja_env.filters["meal"] = meal_format
 
 if __name__ == "__main__":
     app.jinja_env.auto_reload = True
