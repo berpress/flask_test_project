@@ -62,6 +62,17 @@ def edit_restaurant():
     return render_template("edit_restaurant.html", restaurant=restaurant)
 
 
+@app.route("/delete-restaurant")
+def delete_restaurant():
+    id = request.args.get("id")
+    restaurant = Restaurants.query.filter(Restaurants.id == id).first()
+
+    if restaurant:
+        db_session.delete(restaurant)
+        db_session.commit()
+    return redirect("/restaurants")
+
+
 if __name__ == "__main__":
     app.jinja_env.auto_reload = True
     app.run(debug=True)
