@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request
+import datetime
+
+from flask import Flask, render_template, request, redirect
 from database import db_session, init_db
 from models.restaurants import Restaurants
 
@@ -37,6 +39,27 @@ def create_restaurant():
 def restaurants_list():
     restaurants = Restaurants.query.all()
     return render_template("restaurants.html", restaurants=restaurants)
+
+
+@app.route("/edit-restaurant", methods=["GET", "POST"])
+def edit_restaurant():
+    id = request.args.get("id")
+
+    restaurant = Restaurants.query.filter(Restaurants.id == id).first()
+    print(restaurant)
+
+    if request.method == "POST":
+        name = request.form.get("name")
+        description = request.form.get("description")
+        site_url = request.form.get("site_url")
+
+        restaurant.name = name
+        restaurant.description = description
+        restaurant.site_url = site_url
+        restaurant.modified_time = datetime.datetime.now()
+        db_session.commit()
+        return redirect("/restaurants")
+    return render_template("edit_restaurant.html", restaurant=restaurant)
 
 
 if __name__ == "__main__":
